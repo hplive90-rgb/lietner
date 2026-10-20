@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>فلش کارت و لایتنر</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: Tahoma, sans-serif;
+    background: #f0f2f5;
+    padding: 12px;
+    touch-action: manipulation;
+  }
+  .app {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,.1);
+  }
+
+  .header {
+    background: #1e293b;
+    color: #fff;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .header h1 { font-size: 16px; }
+  .lang-selector { display: flex; gap: 6px; }
+  .lang-btn {
+    padding: 8px 14px;
+    border: 2px solid #475569;
+    background: transparent;
+    color: #cbd5e1;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    touch-action: manipulation;
+  }
+  .lang-btn.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #fff;
+  }
+
+  .tabs {
+    display: flex;
+    border-bottom: 2px solid #e2e8f0;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    flex: 1;
+    min-width: 70px;
+    padding: 14px 6px;
+    border: none;
+    background: #f8fafc;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    color: #64748b;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    touch-action: manipulation;
+  }
+  .tab-btn.active {
+    background: #fff;
+    color: #1e293b;
+    border-bottom-color: #3b82f6;
+  }
+
+  .panel { display: none; padding: 20px 16px; }
+  .panel.active { display: block; }
+
+  .flashcard-area, .leitner-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .counter { font-size: 13px; color: #94a3b8; }
+  .flashcard, .leitner-card {
+    width: 100%;
+    min-height: 180px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 24px 16px;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  .flashcard.flipped { background: #eff6ff; border-color: #3b82f6; }
+  .leitner-card.flipped { background: #fffbeb; border-color: #f59e0b; }
+  .flashcard .word, .leitner-card .word {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .flashcard .meaning, .leitner-card .meaning {
+    font-size: 19px;
+    color: #1e40af;
+    text-align: center;
+    display: none;
+    line-height: 1.7;
+  }
+  .leitner-card .meaning { color: #b45309; }
+  .flashcard.flipped .word, .leitner-card.flipped .word { display: none; }
+  .flashcard.flipped .meaning, .leitner-card.flipped .meaning { display: block; }
+
+  .hint { font-size: 12px; color: #94a3b8; text-align: center; }
+  .nav { display: flex; gap: 10px; }
+  .nav button, .answer button {
+    padding: 12px 22px;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    color: #475569;
+    font-weight: 600;
+    touch-action: manipulation;
+  }
+  .nav button:disabled, .answer button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+  }
+
+  .box-info { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .box-badge {
+    padding: 6px 10px;
+    background: #f1f5f9;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+  }
+  .box-badge strong { color: #1e293b; }
+
+  .box-selector {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .box-selector button {
+    padding: 9px 12px;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    color: #475569;
+    touch-action: manipulation;
+  }
+  .box-selector button.active {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    color: #fff;
+  }
+
+  .answer { display: flex; gap: 10px; width: 100%; justify-content: center; }
+  .answer button { flex: 1; max-width: 200px; border: none; }
+  .answer .correct { background: #22c55e; color: #fff; }
+  .answer .wrong { background: #ef4444; color: #fff; }
+
+  .empty {
+    text-align: center;
+    padding: 30px 16px;
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #3b82f6;
+    transition: width .3s;
+  }
+
+  .group {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .group h3 { font-size: 14px; color: #1e293b; margin-bottom: 10px; }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .row label { font-size: 14px; color: #475569; }
+  .row input[type="number"], .row input[type="text"] {
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+  }
+  .row input[type="number"] { width: 80px; text-align: center; }
+  .btn {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    touch-action: manipulation;
+  }
+  .btn-primary { background: #3b82f6; color: #fff; }
+  .btn-secondary { background: #e2e8f0; color: #334155; }
+  .btn-danger { background: #ef4444; color: #fff; }
+
+  textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    direction: ltr;
+    text-align: left;
+  }
+  .info {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.8;
+    margin-bottom: 10px;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
+  }
+  .stat {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+  .stat .num { font-size: 20px; font-weight: 700; color: #1e293b; }
+  .stat .lbl { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+    z-index: 999;
+    max-width: 90%;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>📚 فلش کارت و لایتنر</h1>
+    <div class="lang-selector">
+      <button class="lang-btn active" data-lang="en">English</button>
+      <button class="lang-btn" data-lang="ar">العربية</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="flashcard">فلش کارت</button>
+    <button class="tab-btn" data-tab="leitner">لایتنر</button>
+    <button class="tab-btn" data-tab="bank">بانک</button>
+    <button class="tab-btn" data-tab="settings">تنظیمات</button>
+  </div>
+
+  <div class="panel active" id="panel-flashcard">
+    <div class="flashcard-area">
+      <div class="counter" id="fcCounter">۰ / ۰</div>
+      <div class="flashcard" id="flashcard">
+        <div class="word" id="fcWord">...</div>
+        <div class="meaning" id="fcMeaning">...</div>
+      </div>
+      <div class="hint">برای دیدن معنی روی کارت بزنید</div>
+      <div class="nav">
+        <button id="prevBtn">← قبلی</button>
+        <button id="nextBtn">بعدی →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-leitner">
+    <div class="leitner-area">
+      <div class="box-info">
+        <span class="box-badge">ج۱: <strong id="c1">۰</strong></span>
+        <span class="box-badge">ج۲: <strong id="c2">۰</strong></span>
+        <span class="box-badge">ج۳: <strong id="c3">۰</strong></span>
+        <span class="box-badge">ج۴: <strong id="c4">۰</strong></span>
+        <span class="box-badge">ج۵: <strong id="c5">۰</strong></span>
+        <span class="box-badge">✅: <strong id="c6">۰</strong></span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="ltProgress"></div></div>
+      <div class="box-selector" id="boxSelector">
+        <button data-box="due" class="active">⏰ موعد</button>
+        <button data-box="1">ج۱</button>
+        <button data-box="2">ج۲</button>
+        <button data-box="3">ج۳</button>
+        <button data-box="4">ج۴</button>
+        <button data-box="5">ج۵</button>
+        <button data-box="6">✅</button>
+      </div>
+      <div class="counter" id="ltCounter">۰ / ۰</div>
+      <div class="leitner-card" id="leitnerCard">
+        <div class="word" id="ltWord">...</div>
+        <div class="meaning" id="ltMeaning">...</div>
+      </div>
+      <div class="hint" id="ltHint">کارت را برگردانید و پاسخ دهید</div>
+      <div class="answer">
+        <button class="wrong" id="btnWrong">❌ بلد نبودم</button>
+        <button class="correct" id="btnCorrect">✅ بلد بودم</button>
+      </div>
+      <div class="empty" id="ltEmpty" style="display:none;">کارتی برای مرور نیست.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-bank">
+    <div class="group">
+      <h3>📥 ورودی CSV</h3>
+      <p class="info">هر خط: <code>word,meaning</code></p>
+      <div class="row"><input type="file" id="importFile" accept=".csv,text/csv,text/plain"></div>
+      <textarea id="importText" placeholder="abandon,رها کردن&#10;keen,مشتاق"></textarea>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn btn-primary" id="importBtn">افزودن</button>
+        <button class="btn btn-secondary" id="replaceBtn">جایگزینی</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>📤 خروجی CSV</h3>
+      <div class="row">
+        <button class="btn btn-primary" id="exportBtn">دانلود CSV</button>
+        <button class="btn btn-secondary" id="copyBtn">کپی</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>➕ افزودن دستی</h3>
+      <div class="row">
+        <input type="text" id="manualWord" placeholder="لغت" style="flex:1; min-width:100px;">
+      </div>
+      <div class="row">
+        <input type="text" id="manualMeaning" placeholder="معنی" style="flex:1;">
+        <button class="btn btn-primary" id="addManualBtn">افزودن</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>📊 وضعیت</h3>
+      <div class="stats" id="bankStats"></div>
+      <div class="row" style="margin-top:12px;">
+        <button class="btn btn-danger" id="resetAllBtn">🗑️ ریست</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-settings">
+    <div class="group">
+      <h3>⚙️ سهمیه روزانه</h3>
+      <p class="info">تعداد لغت جدید در روز. پیشنهاد: ۵ تا ۱۰.</p>
+      <div class="row">
+        <label for="dailyQuota">تعداد:</label>
+        <input type="number" id="dailyQuota" min="0" max="100" value="5">
+        <button class="btn btn-primary" id="saveQuotaBtn">ذخیره</button>
+      </div>
+      <p class="info" id="quotaStatus"></p>
+    </div>
+
+    <div class="group">
+      <h3>📅 فواصل مرور</h3>
+      <div class="stats">
+        <div class="stat"><div class="num">۱</div><div class="lbl">ج۱: ۱ روز</div></div>
+        <div class="stat"><div class="num">۲</div><div class="lbl">ج۲: ۲ روز</div></div>
+        <div class="stat"><div class="num">۴</div><div class="lbl">ج۳: ۴ روز</div></div>
+        <div class="stat"><div class="num">۸</div><div class="lbl">ج۴: ۸ روز</div></div>
+        <div class="stat"><div class="num">۱۶</div><div class="lbl">ج۵: ۱۶ روز</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== داده‌های اولیه =====
+  var DEFAULT_EN = [
+    { word: "abandon", meaning: "رها کردن" },
+    { word: "keen", meaning: "مشتاق" },
+    { word: "jealous", meaning: "حسود" },
+    { word: "tact", meaning: "تدبیر" },
+    { word: "oath", meaning: "سوگند" },
+    { word: "vacant", meaning: "خالی" },
+    { word: "hardship", meaning: "سختی" },
+    { word: "gallant", meaning: "شجاع" },
+    { word: "data", meaning: "اطلاعات" },
+    { word: "bachelor", meaning: "مرد مجرد" }
+  ];
+
+  var DEFAULT_AR = [
+    { word: "أب", meaning: "پدر" },
+    { word: "أم", meaning: "مادر" },
+    { word: "بيت", meaning: "خانه" },
+    { word: "ماء", meaning: "آب" },
+    { word: "طعام", meaning: "غذا" },
+    { word: "كتاب", meaning: "کتاب" },
+    { word: "مدرسة", meaning: "مدرسه" },
+    { word: "طالب", meaning: "دانش‌آموز" },
+    { word: "معلم", meaning: "معلم" },
+    { word: "صديق", meaning: "دوست" }
+  ];
+
+  // ===== localStorage با fallback =====
+  var LS = {
+    bank: 'leitner_m_bank',
+    progress: 'leitner_m_progress',
+    quota: 'leitner_m_quota',
+    dailyLimit: 'leitner_m_limit'
+  };
+
+  var storageOK = true;
+  try {
+    localStorage.setItem('__test__', '1');
+    localStorage.removeItem('__test__');
+  } catch (e) {
+    storageOK = false;
+  }
+
+  function loadJSON(key, fallback) {
+    if (!storageOK) return fallback;
+    try {
+      var raw = localStorage.getItem(key);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return fallback;
+  }
+  function saveJSON(key, val) {
+    if (!storageOK) return;
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  }
+
+  var bank = loadJSON(LS.bank, { en: DEFAULT_EN.slice(), ar: DEFAULT_AR.slice() });
+  var progress = loadJSON(LS.progress, { en: {}, ar: {} });
+  var quota = loadJSON(LS.quota, { en: { date: '', count: 0 }, ar: { date: '', count: 0 } });
+  var dailyLimit = 5;
+  if (storageOK) {
+    var n = parseInt(localStorage.getItem(LS.dailyLimit), 10);
+    if (!isNaN(n)) dailyLimit = n;
+  }
+
+  // ===== وضعیت =====
+  var currentLang = 'en';
+  var currentWords = [];
+  var fcIndex = 0;
+  var fcFlipped = false;
+  var ltFilter = 'due';
+  var ltQueue = [];
+  var ltIndex = 0;
+  var ltFlipped = false;
+
+  // ===== کمکی =====
+  function toFa(n) {
+    var p = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return String(n).replace(/\d/g, function (d) { return p[+d]; });
+  }
+
+  function todayStr() {
+    var d = new Date();
+    var m = d.getMonth() + 1;
+    var day = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' + m : m) + '-' + (day < 10 ? '0' + day : day);
+  }
+
+  function intervalDays(box) {
+    return { 1: 1, 2: 2, 3: 4, 4: 8, 5: 16 }[box] || 0;
+  }
+
+  function getProg(word) {
+    var key = currentLang + '::' + word;
+    if (!progress[currentLang]) progress[currentLang] = {};
+    if (!progress[currentLang][key]) {
+      progress[currentLang][key] = { box: 0, lastReviewed: null, nextReview: null };
+    }
+    return progress[currentLang][key];
+  }
+
+  function getTodayCount() {
+    var today = todayStr();
+    if (!quota[currentLang] || quota[currentLang].date !== today) {
+      quota[currentLang] = { date: today, count: 0 };
+      saveJSON(LS.quota, quota);
+    }
+    return quota[currentLang].count;
+  }
+
+  function incTodayCount() {
+    quota[currentLang].count++;
+    saveJSON(LS.quota, quota);
+  }
+
+  function getBoxZero() {
+    return (bank[currentLang] || []).filter(function (w) {
+      return getProg(w.word).box === 0;
+    });
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function () { t.classList.remove('show'); }, 2200);
+  }
+
+  // ===== CSV =====
+  function parseCSV(text) {
+    var lines = text.split(/\r?\n/);
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      var sep = ',';
+      if (line.indexOf('\t') !== -1 && line.indexOf(',') === -1) sep = '\t';
+      var parts = line.split(sep);
+      if (parts.length < 2) continue;
+      var word = parts[0].trim().replace(/^"|"$/g, '');
+      var meaning = parts.slice(1).join(sep).trim().replace(/^"|"$/g, '');
+      if (word.toLowerCase() === 'word' && meaning.toLowerCase() === 'meaning') continue;
+      if (word && meaning) result.push({ word: word, meaning: meaning });
+    }
+    return result;
+  }
+
+  function toCSV(words) {
+    var lines = ['word,meaning'];
+    words.forEach(function (w) {
+      var word = String(w.word).replace(/"/g, '""');
+      var meaning = String(w.meaning).replace(/"/g, '""');
+      if (word.indexOf(',') !== -1 || word.indexOf('"') !== -1) word = '"' + word + '"';
+      if (meaning.indexOf(',') !== -1 || meaning.indexOf('"') !== -1) meaning = '"' + meaning + '"';
+      lines.push(word + ',' + meaning);
+    });
+    return lines.join('\n');
+  }
+
+  // ===== بارگذاری =====
+  function loadLanguage() {
+    currentWords = bank[currentLang] || [];
+    fcIndex = 0;
+    fcFlipped = false;
+    ltFilter = 'due';
+    ltIndex = 0;
+    ltFlipped = false;
+
+    var allBox = document.querySelectorAll('#boxSelector button');
+    for (var i = 0; i < allBox.length; i++) {
+      if (allBox[i].getAttribute('data-box') === 'due') allBox[i].classList.add('active');
+      else allBox[i].classList.remove('active');
+    }
+
+    var remaining = dailyLimit - getTodayCount();
+    if (remaining > 0) {
+      var boxZero = getBoxZero();
+      var toAdd = boxZero.slice(0, remaining);
+      toAdd.forEach(function (w) {
+        var p = getProg(w.word);
+        p.box = 1;
+        p.lastReviewed = Date.now();
+        p.nextReview = Date.now() + intervalDays(1) * 86400000;
+        incTodayCount();
+      });
+      if (toAdd.length > 0) saveJSON(LS.progress, progress);
+    }
+
+    renderAll();
+  }
+
+  function renderAll() {
+    renderFlashcard();
+    renderLeitner();
+    renderBankStats();
+    renderQuotaStatus();
+  }
+
+  // ===== فلش کارت =====
+  function renderFlashcard() {
+    if (currentWords.length === 0) {
+      document.getElementById('fcWord').textContent = '—';
+      document.getElementById('fcMeaning').textContent = '—';
+      document.getElementById('fcCounter').textContent = '۰ / ۰';
+      return;
+    }
+    if (fcIndex >= currentWords.length) fcIndex = 0;
+    var item = currentWords[fcIndex];
+    document.getElementById('fcWord').textContent = item.word;
+    document.getElementById('fcMeaning').textContent = item.meaning;
+    fcFlipped = false;
+    document.getElementById('flashcard').classList.remove('flipped');
+    document.getElementById('fcCounter').textContent = toFa(fcIndex + 1) + ' / ' + toFa(currentWords.length);
+    document.getElementById('prevBtn').disabled = (fcIndex === 0);
+    document.getElementById('nextBtn').disabled = (fcIndex === currentWords.length - 1);
+  }
+
+  // ===== لایتنر =====
+  function getDueCards() {
+    var now = Date.now();
+    return currentWords.filter(function (w) {
+      var p = getProg(w.word);
+      if (p.box === 0 || p.box >= 6) return false;
+      return p.nextReview && p.nextReview <= now;
+    });
+  }
+
+  function getCardsByBox(box) {
+    return currentWords.filter(function (w) {
+      var p = getProg(w.word);
+      if (box === 6) return p.box >= 6;
+      return p.box === box;
+    });
+  }
+
+  function buildQueue() {
+    if (ltFilter === 'due') ltQueue = getDueCards();
+    else ltQueue = getCardsByBox(parseInt(ltFilter, 10));
+  }
+
+  function renderLeitner() {
+    var counts = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
+    currentWords.forEach(function (w) {
+      var p = getProg(w.word);
+      if (p.box >= 1 && p.box <= 5) counts[p.box]++;
+      else if (p.box >= 6) counts[6]++;
+    });
+    for (var i = 1; i <= 6; i++) {
+      document.getElementById('c' + i).textContent = toFa(counts[i]);
+    }
+    var total = currentWords.length;
+    document.getElementById('ltProgress').style.width = (total ? Math.round(counts[6]/total*100) : 0) + '%';
+
+    buildQueue();
+
+    var cardEl = document.getElementById('leitnerCard');
+    var hintEl = document.getElementById('ltHint');
+    var btnC = document.getElementById('btnCorrect');
+    var btnW = document.getElementById('btnWrong');
+    var counterEl = document.getElementById('ltCounter');
+    var emptyEl = document.getElementById('ltEmpty');
+
+    if (ltQueue.length === 0) {
+      cardEl.style.display = 'none';
+      hintEl.style.display = 'none';
+      btnC.disabled = true;
+      btnW.disabled = true;
+      counterEl.textContent = '';
+      emptyEl.style.display = 'block';
+      emptyEl.textContent = ltFilter === 'due'
+        ? '⏰ هیچ کارتی برای مرور امروز نیست.'
+        : 'کارتی در این جعبه نیست.';
+      return;
+    }
+    emptyEl.style.display = 'none';
+    cardEl.style.display = 'flex';
+    hintEl.style.display = 'block';
+    if (ltIndex >= ltQueue.length) ltIndex = 0;
+    var item = ltQueue[ltIndex];
+    document.getElementById('ltWord').textContent = item.word;
+    document.getElementById('ltMeaning').textContent = item.meaning;
+    ltFlipped = false;
+    cardEl.classList.remove('flipped');
+    btnC.disabled = false;
+    btnW.disabled = false;
+    counterEl.textContent = toFa(ltIndex + 1) + ' / ' + toFa(ltQueue.length) +
+      (ltFilter === 'due' ? ' (موعد رسیده)' : '');
+  }
+
+  function handleAnswer(correct) {
+    if (ltQueue.length === 0 || ltIndex >= ltQueue.length) return;
+    var item = ltQueue[ltIndex];
+    var p = getProg(item.word);
+    if (correct) {
+      if (p.box < 6) p.box++;
+    } else {
+      p.box = 1;
+    }
+    p.lastReviewed = Date.now();
+    if (p.box >= 6) p.nextReview = null;
+    else p.nextReview = Date.now() + intervalDays(p.box) * 86400000;
+    saveJSON(LS.progress, progress);
+    ltIndex++;
+    buildQueue();
+    if (ltIndex >= ltQueue.length) ltIndex = 0;
+    ltFlipped = false;
+    renderLeitner();
+  }
+
+  // ===== بانک =====
+  function renderBankStats() {
+    var el = document.getElementById('bankStats');
+    if (!el) return;
+    var en = (bank.en || []).length;
+    var ar = (bank.ar || []).length;
+    var cur = (bank[currentLang] || []).length;
+    el.innerHTML =
+      '<div class="stat"><div class="num">' + toFa(en) + '</div><div class="lbl">انگلیسی</div></div>' +
+      '<div class="stat"><div class="num">' + toFa(ar) + '</div><div class="lbl">عربی</div></div>' +
+      '<div class="stat"><div class="num">' + toFa(cur) + '</div><div class="lbl">زبان فعلی</div></div>';
+  }
+
+  function parseImport() {
+    var text = document.getElementById('importText').value.trim();
+    if (!text) { showToast('متنی وارد نشده.'); return null; }
+    var valid = parseCSV(text);
+    if (valid.length === 0) { showToast('هیچ خط معتبری نبود.'); return null; }
+    return valid;
+  }
+
+  function renderQuotaStatus() {
+    var el = document.getElementById('quotaStatus');
+    if (!el) return;
+    var today = getTodayCount();
+    var remaining = Math.max(0, dailyLimit - today);
+    var boxZero = getBoxZero().length;
+    el.innerHTML =
+      'امروز: <strong>' + toFa(today) + '</strong> از <strong>' + toFa(dailyLimit) + '</strong> — ' +
+      'باقی‌مانده: <strong>' + toFa(remaining) + '</strong><br>' +
+      'در انتظار: <strong>' + toFa(boxZero) + '</strong>';
+  }
+
+  // ===== رویدادها با addEventListener =====
+  function setupEvents() {
+
+    // تب‌ها
+    var tabs = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].addEventListener('click', function () {
+        var all = document.querySelectorAll('.tab-btn');
+        for (var j = 0; j < all.length; j++) all[j].classList.remove('active');
+        var panels = document.querySelectorAll('.panel');
+        for (var k = 0; k < panels.length; k++) panels[k].classList.remove('active');
+        this.classList.add('active');
+        var tabName = this.getAttribute('data-tab');
+        var targetPanel = document.getElementById('panel-' + tabName);
+        if (targetPanel) targetPanel.classList.add('active');
+        if (tabName === 'leitner') renderLeitner();
+        else if (tabName === 'bank') renderBankStats();
+        else if (tabName === 'settings') renderQuotaStatus();
+      });
+    }
+
+    // زبان
+    var langs = document.querySelectorAll('.lang-btn');
+    for (var i = 0; i < langs.length; i++) {
+      langs[i].addEventListener('click', function () {
+        var all = document.querySelectorAll('.lang-btn');
+        for (var j = 0; j < all.length; j++) all[j].classList.remove('active');
+        this.classList.add('active');
+        currentLang = this.getAttribute('data-lang');
+        loadLanguage();
+      });
+    }
+
+    // فلش کارت
+    var fcEl = document.getElementById('flashcard');
+    fcEl.addEventListener('click', function () {
+      fcFlipped = !fcFlipped;
+      if (fcFlipped) this.classList.add('flipped');
+      else this.classList.remove('flipped');
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', function () {
+      if (fcIndex > 0) { fcIndex--; renderFlashcard(); }
+    });
+    document.getElementById('nextBtn').addEventListener('click', function () {
+      if (fcIndex < currentWords.length - 1) { fcIndex++; renderFlashcard(); }
+    });
+
+    // لایتنر
+    var lcEl = document.getElementById('leitnerCard');
+    lcEl.addEventListener('click', function () {
+      if (ltQueue.length === 0) return;
+      ltFlipped = !ltFlipped;
+      if (ltFlipped) this.classList.add('flipped');
+      else this.classList.remove('flipped');
+    });
+
+    document.getElementById('btnCorrect').addEventListener('click', function () { handleAnswer(true); });
+    document.getElementById('btnWrong').addEventListener('click', function () { handleAnswer(false); });
+
+    var boxBtns = document.querySelectorAll('#boxSelector button');
+    for (var i = 0; i < boxBtns.length; i++) {
+      boxBtns[i].addEventListener('click', function () {
+        var all = document.querySelectorAll('#boxSelector button');
+        for (var j = 0; j < all.length; j++) all[j].classList.remove('active');
+        this.classList.add('active');
+        ltFilter = this.getAttribute('data-box');
+        ltIndex = 0;
+        ltFlipped = false;
+        renderLeitner();
+      });
+    }
+
+    // بانک CSV
+    document.getElementById('importFile').addEventListener('change', function (e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        document.getElementById('importText').value = ev.target.result;
+        showToast('فایل بارگذاری شد.');
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    document.getElementById('importBtn').addEventListener('click', function () {
+      var valid = parseImport();
+      if (!valid) return;
+      if (!bank[currentLang]) bank[currentLang] = [];
+      var existing = {};
+      bank[currentLang].forEach(function (w) { existing[w.word] = true; });
+      var added = 0;
+      valid.forEach(function (w) {
+        if (!existing[w.word]) {
+          bank[currentLang].push({ word: w.word, meaning: w.meaning });
+          existing[w.word] = true;
+          added++;
+        }
+      });
+      saveJSON(LS.bank, bank);
+      showToast(toFa(added) + ' لغت اضافه شد.');
+      loadLanguage();
+    });
+
+    document.getElementById('replaceBtn').addEventListener('click', function () {
+      var valid = parseImport();
+      if (!valid) return;
+      if (!confirm('کل بانک جایگزین شود؟')) return;
+      bank[currentLang] = valid;
+      saveJSON(LS.bank, bank);
+      showToast('جایگزین شد.');
+      loadLanguage();
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', function () {
+      var csv = toCSV(bank[currentLang] || []);
+      var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'words-' + currentLang + '.csv';
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      showToast('دانلود شد.');
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', function () {
+      var csv = toCSV(bank[currentLang] || []);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(csv).then(function () {
+          showToast('کپی شد.');
+        }).catch(function () { showToast('کپی ناموفق.'); });
+      } else {
+        // روش جایگزین
+        var ta = document.createElement('textarea');
+        ta.value = csv;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); showToast('کپی شد.'); }
+        catch (e) { showToast('کپی ناموفق.'); }
+        document.body.removeChild(ta);
+      }
+    });
+
+    document.getElementById('addManualBtn').addEventListener('click', function () {
+      var w = document.getElementById('manualWord').value.trim();
+      var m = document.getElementById('manualMeaning').value.trim();
+      if (!w || !m) { showToast('پر کنید.'); return; }
+      if (!bank[currentLang]) bank[currentLang] = [];
+      var exists = bank[currentLang].some(function (x) { return x.word === w; });
+      if (exists) { showToast('قبلاً وجود دارد.'); return; }
+      bank[currentLang].push({ word: w, meaning: m });
+      saveJSON(LS.bank, bank);
+      document.getElementById('manualWord').value = '';
+      document.getElementById('manualMeaning').value = '';
+      showToast('اضافه شد.');
+      loadLanguage();
+    });
+
+    document.getElementById('resetAllBtn').addEventListener('click', function () {
+      if (!confirm('همه داده‌ها پاک شود؟')) return;
+      if (storageOK) {
+        localStorage.removeItem(LS.bank);
+        localStorage.removeItem(LS.progress);
+        localStorage.removeItem(LS.quota);
+        localStorage.removeItem(LS.dailyLimit);
+      }
+      bank = { en: DEFAULT_EN.slice(), ar: DEFAULT_AR.slice() };
+      progress = { en: {}, ar: {} };
+      quota = { en: { date: '', count: 0 }, ar: { date: '', count: 0 } };
+      dailyLimit = 5;
+      document.getElementById('dailyQuota').value = dailyLimit;
+      currentLang = 'en';
+      var ls = document.querySelectorAll('.lang-btn');
+      for (var i = 0; i < ls.length; i++) {
+        if (ls[i].getAttribute('data-lang') === 'en') ls[i].classList.add('active');
+        else ls[i].classList.remove('active');
+      }
+      loadLanguage();
+      showToast('ریست شد.');
+    });
+
+    // تنظیمات
+    document.getElementById('dailyQuota').value = dailyLimit;
+    document.getElementById('saveQuotaBtn').addEventListener('click', function () {
+      var val = parseInt(document.getElementById('dailyQuota').value, 10);
+      if (isNaN(val) || val < 0 || val > 100) { showToast('عدد ۰ تا ۱۰۰.'); return; }
+      dailyLimit = val;
+      if (storageOK) localStorage.setItem(LS.dailyLimit, String(val));
+      loadLanguage();
+      showToast('ذخیره شد.');
+    });
+  }
+
+  // ===== شروع =====
+  function init() {
+    if (!storageOK) {
+      showToast('هشدار: ذخیره‌سازی غیرفعال — پیشرفت ذخیره نمی‌شود.');
+    }
+    setupEvents();
+    loadLanguage();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+
+</body>
+  </html>
